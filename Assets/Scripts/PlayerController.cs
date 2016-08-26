@@ -12,13 +12,12 @@ public class PlayerController : MonoBehaviour
     private Rigidbody objectRigidBody;
     public float tilt;
     public Boundary boundary;
+    public float speed;
 
     public GameObject shot;
     public Transform shotSpawn;
     public float fireRate;
     private float nextFire;
-
-    public float speed;
 
     void Start()
     {

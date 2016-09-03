@@ -13,11 +13,14 @@ public class PlayerController : MonoBehaviour
     public float tilt;
     public Boundary boundary;
     public float speed;
+    public SimpleTouchPad touch;
+    public SimpleTouchAreaButton areaButton;
 
     public GameObject shot;
     public Transform shotSpawn;
     public float fireRate;
     private float nextFire;
+    private Quaternion calibrationQuaternion;
 
     private AudioSource audioSource;
 
@@ -25,11 +28,12 @@ public class PlayerController : MonoBehaviour
     {
         objectRigidBody = GetComponent<Rigidbody>();
         audioSource = GetComponent<AudioSource>();
+        CalibrateAccellerometer();
     }
 
     void Update()
     {
-        if (Input.GetButton("Fire1") && Time.time > nextFire)
+        if (areaButton.CanFire() && Time.time > nextFire)
         {
             nextFire = Time.time + fireRate;
             //GameObject clone = 
@@ -40,11 +44,15 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        float moveHorizontal = Input.GetAxis("Horizontal");
-        float moveVertical = Input.GetAxis("Vertical");
+        //float moveHorizontal = Input.GetAxis("Horizontal");
+        //float moveVertical = Input.GetAxis("Vertical");
 
         //Vector3 movement = new Vector3(moveHorizontal, 0.0f, moveVertical);
-        Vector3 movement = new Vector3(moveHorizontal, 0.0f, moveVertical);
+        // Vector3 accelerationRaw = Input.acceleration;
+        //Vector3 acceleration = FixAcceleration(accelerationRaw);
+        //Vector3 movement = new Vector3(acceleration.x, 0.0f, acceleration.y);
+        Vector2 direction = touch.GetDirection();
+        Vector3 movement = new Vector3(direction.x, 0.0f, direction.y);
         objectRigidBody.velocity = movement * speed;
 
         objectRigidBody.position = new Vector3
@@ -55,6 +63,20 @@ public class PlayerController : MonoBehaviour
             );
 
         objectRigidBody.rotation = Quaternion.Euler(0.0f, 0.0f, objectRigidBody.velocity.x * -tilt);
+    }
+
+    void CalibrateAccellerometer ()
+    {
+        Vector3 accelerationSnapshot = Input.acceleration;
+        Quaternion rotateQuaternion = Quaternion.FromToRotation(new Vector3(0.0f, 0.0f, -1.0f), accelerationSnapshot);
+        calibrationQuaternion = Quaternion.Inverse(rotateQuaternion);
+
+    }
+
+    Vector3 FixAcceleration (Vector3 accelearation)
+    {
+        Vector3 fixedAcceleration = calibrationQuaternion * accelearation;
+        return fixedAcceleration;
     }
 	
 }
